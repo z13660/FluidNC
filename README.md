@@ -1,3 +1,19 @@
+Everything is base on FluidNC V3.9.9
+Implement 2s PWM soft start ramp-up in PWMSpindle / 在PWM主轴中实现2秒软启动
+
+Changes:
+1. Modified `PWM::setState` to include a 2-second linear ramp-up loop.
+2. The spindle now smoothly increases duty cycle from current value to target value (100ms steps).
+3. This ramp-up occurs BEFORE the configured `spinup_ms` stabilization delay.
+4. Uses `DwellMode::SysSuspend` to maintain system responsiveness during the ramp.
+
+具体改动：
+1. 修改了 `PWM::setState`，加入了一个 2 秒的线性爬升循环。
+2. 主轴现在会从当前值平滑增加占空比直到目标值（步进为 100ms）。
+3. 该爬升过程发生在配置的 `spinup_ms` 稳定延时之前。
+4. 使用 `DwellMode::SysSuspend` 确保爬升过程中的系统响应能力。
+
+
 <img src="https://github.com/bdring/FluidNC/wiki/images/logos/FluidNC.svg" width="600">
 
 ## Introduction
