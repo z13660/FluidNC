@@ -65,7 +65,30 @@ namespace Spindles {
             // spinning down.
             set_direction(state == SpindleState::Cw);
         }
+        // ======================= 新增：2秒软启动逻辑 (Start) =======================
+        // 只有当不是禁用状态，且目标PWM值(dev_speed)大于当前PWM值(_current_pwm_duty)时才执行
+        if (state != SpindleState::Disable && dev_speed > _current_pwm_duty) {
+            uint32_t duration = 2000; // 设定软启动时间为 2000ms
+            uint32_t step_interval = 20; // 20ms 刷新一次
 
+            if (duration >= step_interval) {
+                uint32_t steps = duration / step_interval;
+                uint32_t start_duty = _current_pwm_duty;
+                float duty_delta = (float)(dev_speed - start_duty) / steps;
+
+                for (uint32_t i = 1; i <= steps; i++) {
+                    // 计算当前瞬间的 Duty
+                    uint32_t current_duty = start_duty + (uint32_t)(duty_delta * i);
+                    
+                    // 写入硬件
+                    set_output(current_duty);
+                    
+                    // 等待
+                    dwell_ms(step_interval, DwellMode::SysSuspend);
+                }
+            }
+        }
+        // ======================= 新增：2秒软启动逻辑 (End) =======================
         // rate adjusted spindles (laser) in M4 set power via the stepper engine, not here
 
         // set_output must go first because of the way enable is used for level
