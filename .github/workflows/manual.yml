@@ -46,6 +46,7 @@ jobs:
         files: |
           release/*.zip
           release/*.elf
+          release/*.bin
         draft: True
     # - name: Deploy to fluidnc-releases
     #   uses: datalbry/copy_folder_to_another_repo_action@1.0.0
