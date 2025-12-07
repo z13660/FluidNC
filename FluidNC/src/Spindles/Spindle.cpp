@@ -267,43 +267,7 @@ namespace Spindles {
             dwell_ms(down < maxSpeed() ? _spindown_ms * down / maxSpeed() : _spindown_ms, DwellMode::SysSuspend);
         }
         if (up) {
-        // ======================= 新增：PWM 软启动逻辑 (Start) =======================
-        // 设定软启动时间默认为 2000ms (2秒)
-        uint32_t ramp_duration = 2000; 
-        uint32_t step_interval = 100; // 20ms 更新一次 (50Hz)
-
-        // 只有当有足够的加速时间且目标速度大于当前速度时才执行软启动
-        if (ramp_duration >= step_interval && speed > _current_speed) {
-            uint32_t steps = ramp_duration / step_interval;
-            float rpm_delta = (float)(speed - _current_speed);
-            uint32_t start_rpm = _current_speed;
-
-            for (uint32_t i = 1; i <= steps; i++) {
-                // 1. 计算当前时间片的插值 RPM
-                // 使用 float 计算避免整型截断导致的阶梯感
-                uint32_t current_ramp_rpm = start_rpm + (uint32_t)(rpm_delta * i / steps);
-
-                // 2. 将 RPM 映射为 PWM Duty (利用 mapSpeed 处理非线性关系)
-                // 注意：mapSpeed 可能会调用 sys.set_spindle_speed，这是正常的
-                uint32_t duty = mapSpeed(state, current_ramp_rpm);
-
-                // 3. 立即写入硬件
-                set_output(duty);
-
-                // 4. 等待切片时间
-                dwell_ms(step_interval, DwellMode::SysSuspend);
-            }
-        }
-        
-        // 确保循环结束后，输出值严格等于目标设定的值（防止浮点计算误差）
-        set_output(mapSpeed(state, speed));
-        // ======================= 新增：PWM 软启动逻辑 (End) =======================
-
-
-        // ======================= 原有：稳定延时逻辑 =======================
-        // 这里继续执行原有的 dwell_ms，用于软启动完成后的转速稳定
-        // 系统会读取配置文件中的 spinup_ms 进行额外的等待
-        dwell_ms(up < maxSpeed() ? _spinup_ms * up / maxSpeed() : _spinup_ms, DwellMode::SysSuspend);
+            dwell_ms(up < maxSpeed() ? _spinup_ms * up / maxSpeed() : _spinup_ms, DwellMode::SysSuspend);
         }
         _current_state = state;
         _current_speed = speed;
